@@ -68,24 +68,36 @@ app.get("/check-user", async (req, res) => {
 
   try {
     const cleanPhoneNumber = phoneNumber.replace(/\D/g, "");
-
     const iinQueries = [iin, parseInt(iin, 10), iin.toString()];
-
-    const phoneQueries = [
-      cleanPhoneNumber,
-      parseInt(cleanPhoneNumber, 10),
-      `+${cleanPhoneNumber}`,
-      new RegExp(cleanPhoneNumber),
-    ];
 
     const user = await Borrower.findOne({
       iin: { $in: iinQueries },
-      $or: [{ phoneNumber: { $in: phoneQueries } }, { phoneNumber: { $regex: cleanPhoneNumber } }],
+      $or: [
+        { phoneNumber: cleanPhoneNumber },
+        { phoneNumber: parseInt(cleanPhoneNumber, 10) },
+        { phoneNumber: { $regex: cleanPhoneNumber } },
+        { phoneNumber: { $regex: new RegExp(`\\b${cleanPhoneNumber}\\b`) } },
+      ],
     });
 
-    console.log("Query result:", user);
+    if (user) {
+      let phoneMatches;
+      if (typeof user.phoneNumber === "string") {
+        phoneMatches = user.phoneNumber.match(/\d+/g);
+      } else if (typeof user.phoneNumber === "number") {
+        phoneMatches = [user.phoneNumber.toString()];
+      } else {
+        phoneMatches = user.phoneNumber.toString().match(/\d+/g);
+      }
 
-    res.json({ exists: !!user });
+      const exactMatch = phoneMatches
+        ? phoneMatches.some((match) => match.includes(cleanPhoneNumber))
+        : false;
+
+      res.json({ exists: exactMatch });
+    } else {
+      res.json({ exists: false });
+    }
   } catch (error) {
     console.error("Error checking user:", error);
     res.status(500).json({ error: "Internal server error" });
