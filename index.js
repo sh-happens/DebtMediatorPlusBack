@@ -14,7 +14,24 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: ["https://www.rfg.kz", "http://www.rfg.kz"],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "https://www.rfg.kz",
+        "http://www.rfg.kz",
+        "https://rfg.kz",
+        "http://rfg.kz",
+      ];
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
 app.use(express.json());
