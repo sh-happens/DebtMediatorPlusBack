@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: "http://www.rfg.kz",
+    origin: ["https://www.rfg.kz", "http://www.rfg.kz"],
   })
 );
 app.use(express.json());
