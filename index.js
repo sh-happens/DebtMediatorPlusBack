@@ -50,8 +50,25 @@ app.get("/check-user", async (req, res) => {
   }
 
   try {
-    const userExists = await Borrower.exists({ iin: iin, phoneNumber });
-    res.json({ exists: !!userExists });
+    const cleanPhoneNumber = phoneNumber.replace(/\D/g, "");
+
+    const iinQueries = [iin, parseInt(iin, 10), iin.toString()];
+
+    const phoneQueries = [
+      cleanPhoneNumber,
+      parseInt(cleanPhoneNumber, 10),
+      `+${cleanPhoneNumber}`,
+      new RegExp(cleanPhoneNumber),
+    ];
+
+    const user = await Borrower.findOne({
+      iin: { $in: iinQueries },
+      $or: [{ phoneNumber: { $in: phoneQueries } }, { phoneNumber: { $regex: cleanPhoneNumber } }],
+    });
+
+    console.log("Query result:", user);
+
+    res.json({ exists: !!user });
   } catch (error) {
     console.error("Error checking user:", error);
     res.status(500).json({ error: "Internal server error" });
