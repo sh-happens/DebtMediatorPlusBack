@@ -105,7 +105,7 @@ app.get("/check-user", async (req, res) => {
 });
 
 app.post("/send-email", upload.array("files", 5), async (req, res) => {
-  const { fullName, address, comments } = req.body;
+  const { fullName, address, comments, newPhoneNumber } = req.body;
   const files = req.files;
 
   if (!fullName || !address) {
@@ -122,11 +122,12 @@ app.post("/send-email", upload.array("files", 5), async (req, res) => {
       from: process.env.EMAIL_FROM,
       to: process.env.EMAIL_TO,
       subject: "Новая заявка на урегулирование задолженности",
-      text: `ФИО: ${fullName}\nАдрес регистрации: ${address}\nКомментарии: ${comments}\nПрикрепленные файлы: ${files
+      text: `ФИО: ${fullName}\nАдрес регистрации: ${address}\nНовый номер телефона: ${newPhoneNumber}\nКомментарии: ${comments}\nПрикрепленные файлы: ${files
         .map((f) => f.originalname)
         .join(", ")}`,
       html: `<p><strong>ФИО:</strong> ${fullName}</p>
              <p><strong>Адрес регистрации:</strong> ${address}</p>
+             <p><strong>Новый номер телефона:</strong> ${newPhoneNumber}</p>
              <p><strong>Комментарии:</strong> ${comments}</p>
              <p><strong>Прикрепленные файлы:</strong> ${files
                .map((f) => f.originalname)
